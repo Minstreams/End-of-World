@@ -6,8 +6,8 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Map
-  m_Shader: {fileID: 4800000, guid: 8abcdfc5a7b62364a9852b36053b9536, type: 3}
+  m_Name: Cam1
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -39,19 +39,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Mask:
-        m_Texture: {fileID: 2800000, guid: b99a2dfab5bc0bf4799a82add759dd6e, type: 3}
+        m_Texture: {fileID: 8400000, guid: 7bb3f19d6cdac4d4aabef6c3a13c88e3, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Noise:
-        m_Texture: {fileID: 2800000, guid: 28c7aad1372ff114b90d330f8a2dd938, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -72,7 +64,6 @@ Material:
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
-    - _NoiseDis: 0.31584445
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
@@ -80,15 +71,6 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _chaos: 0
-    - _line: 0.025
-    - _orangeGate: 0.6
-    - _redGate: 0.79
-    - _yellowGate: 0.28
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Green: {r: 0.0724481, g: 0.9852941, b: 0.2676082, a: 1}
-    - _Orange: {r: 0.8823529, g: 0.5530366, b: 0.1362457, a: 1}
-    - _Red: {r: 0.8676471, g: 0.1977725, b: 0.1977725, a: 1}
-    - _Yellow: {r: 0.8420982, g: 0.9632353, b: 0.08499137, a: 1}
