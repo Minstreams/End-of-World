@@ -33,10 +33,7 @@ public class BoardMover : MonoBehaviour
      ************/
     private void Start()
     {
-        origPosition = transform.position;
-        origRotation = transform.rotation;
-        origScale = transform.localScale;
-        sqrtDistance = (origPosition - target.position).sqrMagnitude;
+        
         mat = GetComponent<Renderer>().material;
     }
 
@@ -96,10 +93,15 @@ public class BoardMover : MonoBehaviour
     /************
      * 静态方法 *
      ************/
+    [ContextMenu("PushIn")]
     public void pushIn()
     {
         if (!inScreen)
         {
+            origPosition = transform.position;
+            origRotation = transform.rotation;
+            origScale = transform.localScale;
+            sqrtDistance = (origPosition - target.position).sqrMagnitude;
             StopAllCoroutines();
             inScreen = true;
             StartCoroutine(moveTo());

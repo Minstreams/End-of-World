@@ -24,6 +24,10 @@ public class GameSystem : MonoBehaviour
     /// </summary>
     public static float chaos = 0;
     /// <summary>
+    /// 混乱度
+    /// </summary>
+    public static float alert = 0;
+    /// <summary>
     /// 混乱等级
     /// </summary>
     public enum ChaosLevel
@@ -43,12 +47,18 @@ public class GameSystem : MonoBehaviour
      *  系统设置变量  *
      ******************/
     [Header("【游戏设置】")]
+    public float 最大混乱值;
+    public float 最大警戒值;
     public BoardMover.Setting 面板移动设置;
     [Header("推送盒子")]
     public MessageBox MessageBox;
     public MessageBox.Setting 推送设置;
     [Header("【地图】")]
     public Material Map;
+    public Texture2D MapTex;
+    public Texture2D NoiseTex;
+    [Header("时间流逝速度")]
+    public float timeSpeed = 1;
 
     [System.Serializable]
     public struct Dialog
@@ -149,6 +159,9 @@ public class GameSystem : MonoBehaviour
     }
     public AllData 详细数据;
 
+    [Header("Prefabs")]
+    public GameObject monitorPrefab;
+
     /******************
      *  系统全局方法  *
      ******************/
@@ -169,7 +182,68 @@ public class GameSystem : MonoBehaviour
         settings.MessageBox.textToShow = messageToShow;
         settings.MessageBox.ShowMessage();
     }
+    /// <summary>
+    /// 判断地图对应位置的混乱等级
+    /// </summary>
+    /// <param name="Pos">世界坐标</param>
+    /// <returns></returns>
+    public static GameSystem.ChaosLevel GetChaosLevel(Vector3 Pos)
+    {
+        Vector3 screenPoint = Camera.main.WorldToScreenPoint(Pos);
+        float NoiseDis = settings.Map.GetFloat("_NoiseDis");
+        float v = screenPoint.y / Screen.height + NoiseDis;
+        if (v >= 1) v--;
+        float ud = Screen.width - 1920.0f / 1080.0f * Screen.height;
+        float u = (screenPoint.x - ud / 2) / (Screen.width - ud) + NoiseDis;
+        if (u >= 1) u--;
 
+        Color c = settings.NoiseTex.GetPixel((int)(u * 1024), (int)(v * 1024));
+
+        float value = chaos * 2 - 1 + c.r;
+
+        if (value > settings.Map.GetFloat("_redGate"))
+        {
+            return ChaosLevel.red;
+        }
+        else if (value > settings.Map.GetFloat("_orangeGate"))
+        {
+            return ChaosLevel.orange;
+        }
+        else if (value > settings.Map.GetFloat("_yellowGate"))
+        {
+            return ChaosLevel.yellow;
+        }
+        return ChaosLevel.green;
+    }
+    /// <summary>
+    /// 判定鼠标位置是否在陆地上
+    /// </summary>
+    /// <returns></returns>
+    public static bool ifOnLand()
+    {
+        Vector3 screenPoint = Input.mousePosition;
+        int v = (int)(screenPoint.y * 1080.0f / Screen.height);
+        float ud = Screen.width - 1920.0f / 1080.0f * Screen.height;
+        int u = (int)((screenPoint.x - ud / 2) / (Screen.width - ud) * 1920);
+        Color a = settings.MapTex.GetPixel(u, v);
+        return (a.a > 0.1f);
+    }
+    /// <summary>
+    /// 增加混乱值
+    /// </summary>
+    /// <param name="value"></param>
+    public static void AddChaos(float value)
+    {
+        chaos += value / settings.最大混乱值;
+    }
+    /// <summary>
+    /// 增加警戒值
+    /// </summary>
+    /// <param name="value"></param>
+    public static void AddAlert(float value)
+    {
+        alert += value / settings.最大警戒值;
+    }
     /******************
     *  系统内部实现  *
     ******************/
@@ -177,9 +251,22 @@ public class GameSystem : MonoBehaviour
     {
         settings = this;
         Map.SetFloat("_NoiseDis", Random.value);
+        InvokeRepeating("TimeFloat", 1, 1);
     }
     private void Update()
     {
         Map.SetFloat("_chaos", chaos);
+        chaos += 0.0001f;
+
+    }
+    /// <summary>
+    /// 时间流逝，每秒被调用
+    /// </summary>
+    private void TimeFloat()
+    {
+        if (alert > 0.01f)
+        {
+            alert -= 0.01f;
+        }
     }
 }
