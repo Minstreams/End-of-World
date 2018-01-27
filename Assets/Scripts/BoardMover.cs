@@ -84,9 +84,9 @@ public class BoardMover : MonoBehaviour
             {
                 progress = 1 - progress;
             }
-            transform.Translate(delta * GameSystem.settings.板子移动设置.移动缓动值);
-            transform.localScale += deltaScale * GameSystem.settings.板子移动设置.移动缓动值;
-            transform.rotation = Quaternion.Slerp(transform.rotation, ifBack ? origRotation : target.rotation, GameSystem.settings.板子移动设置.旋转缓动值);
+            transform.Translate(delta * GameSystem.settings.面板移动设置.移动缓动值);
+            transform.localScale += deltaScale * GameSystem.settings.面板移动设置.移动缓动值;
+            transform.rotation = Quaternion.Slerp(transform.rotation, ifBack ? origRotation : target.rotation, GameSystem.settings.面板移动设置.旋转缓动值);
             mat.SetFloat("_progress", progress);
             yield return 0;
             yield return moveToPoint(ifBack);
