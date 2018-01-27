@@ -26,8 +26,6 @@ public class MessageBox : MonoBehaviour
     [Header("要显示的文本")]
     [Multiline(4)]
     public string textToShow;
-    [Header("控制的监视器实例")]
-    public TVScreen tVScreen;
 
     private Vector3 pos;
 
@@ -51,15 +49,5 @@ public class MessageBox : MonoBehaviour
         yield return new WaitForSeconds(GameSystem.settings.推送设置.推送持续时间);
         GameSystem.MoveTo(gameObject, pos + Vector3.up * GameSystem.settings.推送设置.推送盒子高度, transform.rotation);
         yield return 0;
-    }
-
-    private void OnMouseOver()
-    {
-        if (Input.GetMouseButtonUp(0))
-        {
-            StopAllCoroutines();
-            GameSystem.MoveTo(gameObject, pos + Vector3.up * GameSystem.settings.推送设置.推送盒子高度, transform.rotation);
-            tVScreen.pushIn();
-        }
     }
 }

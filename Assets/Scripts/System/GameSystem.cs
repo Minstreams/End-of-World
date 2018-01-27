@@ -19,16 +19,22 @@ public class GameSystem : MonoBehaviour
     /// 是否暂停
     /// </summary>
     public static bool pause = false;
+    /// <summary>
+    /// 混乱度
+    /// </summary>
+    public static float chaos = 0;
 
 
     /******************
      *  系统设置变量  *
      ******************/
     [Header("【游戏设置】")]
-    public CameraMover.Setting 相机设置;
+    public BoardMover.Setting 板子移动设置;
     [Header("推送盒子")]
     public MessageBox MessageBox;
     public MessageBox.Setting 推送设置;
+    [Header("【地图】")]
+    public Material Map;
 
     /******************
      *  系统全局方法  *
@@ -57,5 +63,10 @@ public class GameSystem : MonoBehaviour
     private void Awake()
     {
         settings = this;
+        Map.SetFloat("_NoiseDis", Random.value);
+    }
+    private void Update()
+    {
+        Map.SetFloat("_chaos", chaos);
     }
 }

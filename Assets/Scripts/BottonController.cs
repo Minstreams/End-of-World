@@ -11,13 +11,13 @@ public class BottonController : MonoBehaviour
 {
     [Header("【按钮】")]
     [Header("控制的screen")]
-    public TVScreen screen;
+    public BoardMover board;
 
     private void OnMouseOver()
     {
         if (Input.GetMouseButtonUp(0))
         {
-            screen.pushIn();
+            board.pushIn();
         }
     }
 }
