@@ -38,8 +38,10 @@ public class MessageBox : MonoBehaviour
     [ContextMenu("显示推送")]
     public void ShowMessage()
     {
+        if (textToShow == "") return;
         text.text = textToShow;
         StopAllCoroutines();
+        GameSystem.PlayAudio(GameSystem.settings.音效clip.推送);
         StartCoroutine(showMessage());
     }
 

@@ -39,24 +39,66 @@ public class GameSystem : MonoBehaviour
     /// </summary>
     public enum WeChatTopic
     {
-        火灾, 地震, 黑夜, 传染病
+        火灾, 地震, 黑夜, 传染病, None
     }
-
-
+    public enum status
+    {
+        地图, 监视器, 监听器, 微博, 微信, 流言, 人祸, 电视, 报纸
+    }
+    public static status currentStatus = status.地图;
     /******************
      *  系统设置变量  *
      ******************/
     [Header("【游戏设置】")]
-    public float 最大混乱值;
-    public float 最大警戒值;
+    public float 最大混乱值 = 100;
+    public float 最大警戒值 = 100;
+    public float 相似系数 = 1.25f;
+    [System.Serializable]
+    public struct chaosRate
+    {
+        public float 微博;
+        public float 微信消息;
+        public float 微信朋友圈;
+        public float 语言;
+        public float 雇人搞事情;
+        public float 报纸;
+        public float 电视;
+    }
+    public chaosRate 不同方式的混乱影响基数;
+    [System.Serializable]
+    public struct alertRate
+    {
+        public float 微博;
+        public float 微信消息;
+        public float 微信朋友圈;
+        public float 语言;
+        public float 雇人搞事情;
+        public float 报纸;
+        public float 电视;
+        public float 监视;
+        public float 监听;
+    }
+    public alertRate 不同方式的警戒影响基数;
+
+    [System.Serializable]
+    public struct audios
+    {
+        public AudioClip 种监视器;
+        public AudioClip 推送;
+        public AudioClip gg;
+    }
+    public audios 音效clip;
     public BoardMover.Setting 面板移动设置;
     [Header("推送盒子")]
     public MessageBox MessageBox;
     public MessageBox.Setting 推送设置;
+    public float 对话间隔时间;
     [Header("【地图】")]
     public Material Map;
     public Texture2D MapTex;
     public Texture2D NoiseTex;
+    [Header("警诫条")]
+    public Material AlertBar;
     [Header("时间流逝速度")]
     public float timeSpeed = 1;
 
@@ -91,10 +133,8 @@ public class GameSystem : MonoBehaviour
     [System.Serializable]
     public struct WeiBoTopicData
     {
-        [Multiline(5)]
-        public string[] 预测;
-        [Multiline(5)]
-        public string[] 煽动;
+        public Sprite[] 预测;
+        public Sprite[] 煽动;
     }
     [System.Serializable]
     public struct WeiBoData
@@ -103,6 +143,7 @@ public class GameSystem : MonoBehaviour
         public WeiBoTopicData 地震;
         public WeiBoTopicData 黑夜;
         public WeiBoTopicData 传染病;
+        public Sprite[] NPC;
     }
     [System.Serializable]
     public struct WeChatSingleData
@@ -115,6 +156,11 @@ public class GameSystem : MonoBehaviour
         public string[] 黑夜;
         [Multiline(4)]
         public string[] 传染病;
+
+        public Sprite[] 火灾图;
+        public Sprite[] 地震图;
+        public Sprite[] 黑夜图;
+        public Sprite[] 传染病图;
     }
     [System.Serializable]
     public struct WeChatData
@@ -127,17 +173,15 @@ public class GameSystem : MonoBehaviour
     [System.Serializable]
     public struct PaperData
     {
-        public Texture2D[] 火灾;
-        public Texture2D[] 地震;
-        public Texture2D[] 黑夜;
-        public Texture2D[] 传染病;
+        public Sprite[] 火灾;
+        public Sprite[] 地震;
+        public Sprite[] 黑夜;
+        public Sprite[] 传染病;
     }
     [System.Serializable]
     public struct NewsSingleData
     {
-        Texture2D 图片;
-        [Multiline(2)]
-        public string 标题;
+        public Sprite 图片;
     }
     [System.Serializable]
     public struct NewsData
@@ -160,13 +204,32 @@ public class GameSystem : MonoBehaviour
     public AllData 详细数据;
 
     [Header("Prefabs")]
+    public ParticleSystem waves;
+    public ParticleSystem wave;
     public GameObject monitorPrefab;
+    public GameObject detectPhonePrefab;
+    public GameObject weiboInfoPrefab;
+    public GameObject wechatPrefab;
+
+    [Header("CD")]
+    public float weiboCD;
+    public float wechatCD2;
+    public float 人祸CD;
+    public float 流言CD;
 
     /******************
      *  系统全局方法  *
      ******************/
+    /// <summary>
+    /// 移动任意物体
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <param name="pos"></param>
+    /// <param name="rot"></param>
+    /// <param name="speed"></param>
     public static void MoveTo(GameObject obj, Vector3 pos, Quaternion rot, float speed = 0.1f)
     {
+        if (obj == null) return;
         Mover mover = obj.GetComponent<Mover>();
         if (mover != null)
         {
@@ -177,10 +240,22 @@ public class GameSystem : MonoBehaviour
         mover.targetRot = rot;
         mover.speed = speed;
     }
-    public static void ShowMessageBox(string messageToShow, string information)
+    /// <summary>
+    /// 显示推送
+    /// </summary>
+    /// <param name="messageToShow"></param>
+    /// <param name="information"></param>
+    public static void ShowMessageBox(string messageToShow, float seconds = 0, bool showWaves = false)
     {
+        settings.StartCoroutine(ShowMessage(messageToShow, seconds, showWaves));
+    }
+    private static IEnumerator ShowMessage(string messageToShow, float seconds, bool showWaves)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (showWaves) ShowWaves();
         settings.MessageBox.textToShow = messageToShow;
         settings.MessageBox.ShowMessage();
+        yield return 0;
     }
     /// <summary>
     /// 判断地图对应位置的混乱等级
@@ -232,9 +307,18 @@ public class GameSystem : MonoBehaviour
     /// 增加混乱值
     /// </summary>
     /// <param name="value"></param>
-    public static void AddChaos(float value)
+    public static void AddChaos(float value, WeChatTopic topic)
     {
-        chaos += value / settings.最大混乱值;
+        if (lastTopic == topic)
+        {
+            chaosBonus *= settings.相似系数;
+        }
+        else
+        {
+            chaosBonus = 1;
+            lastTopic = topic;
+        }
+        chaosT += value * chaosBonus / settings.最大混乱值;
     }
     /// <summary>
     /// 增加警戒值
@@ -242,31 +326,98 @@ public class GameSystem : MonoBehaviour
     /// <param name="value"></param>
     public static void AddAlert(float value)
     {
-        alert += value / settings.最大警戒值;
+        alertT += value / settings.最大警戒值;
+    }
+    /// <summary>
+    /// 获取当前主题
+    /// </summary>
+    public static WeChatTopic GetTopic()
+    {
+        return lastTopic;
+    }
+    /// <summary>
+    /// 播放音效
+    /// </summary>
+    /// <param name="ac"></param>
+    public static void PlayAudio(AudioClip ac)
+    {
+        if (ac == null) return;
+        settings.StartCoroutine(playAudio(ac));
+    }
+    public static void ChangeBGM(AudioClip ac)
+    {
+        if (ac == null)
+        {
+            bgmPlus.Stop();
+            bgm.volume = bgmVo;
+        }
+        else
+        {
+            bgm.volume = bgmVo * 0.2f;
+            bgmPlus.clip = ac;
+            bgmPlus.Play();
+        }
+    }
+    public static void ShowWaves()
+    {
+        settings.waves.Play();
+    }
+    public static void ShowWave(Vector3 pos)
+    {
+        pos.x *= -1;
+        pos.y *= -1;
+        settings.wave.transform.position = pos;
+        settings.wave.Play();
     }
     /******************
     *  系统内部实现  *
     ******************/
+    private static float chaosT = 0;
+    private static float alertT = 0;
+    private static float chaosBonus = 1;
+    private static WeChatTopic lastTopic = WeChatTopic.None;
+    private static AudioSource bgm;
+    private static AudioSource bgmPlus;
+    private static float bgmVo;
+
     private void Awake()
     {
         settings = this;
+        bgm = GetComponent<AudioSource>();
+        bgmVo = bgm.volume;
+        bgmPlus = gameObject.AddComponent<AudioSource>();
+        bgmPlus.playOnAwake = false;
+        bgmPlus.loop = true;
         Map.SetFloat("_NoiseDis", Random.value);
         InvokeRepeating("TimeFloat", 1, 1);
     }
     private void Update()
     {
         Map.SetFloat("_chaos", chaos);
-        chaos += 0.0001f;
+        AlertBar.SetFloat("_alert", alert);
+
+        chaos += (chaosT - chaos) * 0.001f;
+        alert += (alertT - alert) * 0.01f;
 
     }
+    private static IEnumerator playAudio(AudioClip ac)
+    {
+        AudioSource audioSource = settings.gameObject.AddComponent<AudioSource>();
+        audioSource.clip = ac;
+        audioSource.Play();
+        yield return new WaitForSeconds(ac.length + 2);
+        Destroy(audioSource);
+        yield return 0;
+    }
+
     /// <summary>
     /// 时间流逝，每秒被调用
     /// </summary>
     private void TimeFloat()
     {
-        if (alert > 0.01f)
+        if (alertT > 0.01f)
         {
-            alert -= 0.01f;
+            alertT -= 0.01f;
         }
     }
 }

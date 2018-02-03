@@ -28,25 +28,31 @@ public class BoardMover : MonoBehaviour
     private bool inScreen = false;
     private Material mat;
 
+    public bool trans = false;
+
+    public AudioClip bgm;
+    public GameSystem.status status = GameSystem.status.地图;
     /************
      * 内部方法 *
      ************/
     private void Start()
     {
-        
-        mat = GetComponent<Renderer>().material;
+        if (trans) mat = GetComponent<Renderer>().material;
     }
 
     //移动
     private IEnumerator moveTo()
     {
-
+        GameSystem.ChangeBGM(bgm);
+        GameSystem.currentStatus = status;
         yield return moveToPoint(false);
         yield return 0;
     }
     //返回
     private IEnumerator moveBack()
     {
+        GameSystem.ChangeBGM(null);
+        GameSystem.currentStatus = GameSystem.status.地图;
         yield return moveToPoint(true);
         yield return 0;
     }
@@ -63,14 +69,14 @@ public class BoardMover : MonoBehaviour
                 transform.position = origPosition;
                 transform.rotation = origRotation;
                 transform.localScale = origScale;
-                mat.SetFloat("_progress", 0);
+                if (trans && mat != null) mat.SetFloat("_progress", 0);
             }
             else
             {
                 transform.position = target.position;
                 transform.rotation = target.rotation;
                 transform.localScale = target.localScale;
-                mat.SetFloat("_progress", 1);
+                if (trans && mat != null) mat.SetFloat("_progress", 1);
             }
             yield return 0;
         }
@@ -84,7 +90,7 @@ public class BoardMover : MonoBehaviour
             transform.Translate(delta * GameSystem.settings.面板移动设置.移动缓动值);
             transform.localScale += deltaScale * GameSystem.settings.面板移动设置.移动缓动值;
             transform.rotation = Quaternion.Slerp(transform.rotation, ifBack ? origRotation : target.rotation, GameSystem.settings.面板移动设置.旋转缓动值);
-            mat.SetFloat("_progress", progress);
+            if (trans && mat != null) mat.SetFloat("_progress", progress);
             yield return 0;
             yield return moveToPoint(ifBack);
         }

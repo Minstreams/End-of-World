@@ -12,11 +12,13 @@ public class BottonController : MonoBehaviour
     [Header("【按钮】")]
     [Header("控制的screen")]
     public BoardMover board;
+    public AudioClip audioClip;
 
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0)&&GameSystem.currentStatus == GameSystem.status.地图)
         {
+            GameSystem.PlayAudio(audioClip);
             board.pushIn();
         }
     }
